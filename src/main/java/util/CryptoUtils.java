@@ -1,37 +1,35 @@
-package com.rogueS.util;
+package util;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 public class CryptoUtils {
-    private static final String ALGORITHM = "AES";
 
-    private static final byte[] KEY =
-            "1234567890123456".getBytes();
+    private static final Dotenv dotenv = Dotenv.load();
 
-    public static byte[] encrypt(byte[] data)
-            throws Exception {
-        Cipher cipher =
-                Cipher.getInstance(ALGORITHM);
+    private static final String ALGORITHM = dotenv.get("CRYPTO_ALGORITHM", "AES");
+    private static final String KEY_STRING = dotenv.get("CRYPTO_KEY");
 
-        SecretKeySpec keySpec =
-                new SecretKeySpec(KEY, ALGORITHM);
+    private static final byte[] KEY;
 
+    static {
+        if (KEY_STRING == null || KEY_STRING.isBlank())
+            throw new RuntimeException("CRYPTO_KEY is not set in .env file!");
+        KEY = KEY_STRING.getBytes();
+    }
+
+    public static byte[] encrypt(byte[] data) throws Exception {
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        SecretKeySpec keySpec = new SecretKeySpec(KEY, ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-
         return cipher.doFinal(data);
     }
 
-    public static byte[] decrypt(byte[] data)
-            throws Exception {
-        Cipher cipher =
-                Cipher.getInstance(ALGORITHM);
-
-        SecretKeySpec keySpec =
-                new SecretKeySpec(KEY, ALGORITHM);
-
+    public static byte[] decrypt(byte[] data) throws Exception {
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        SecretKeySpec keySpec = new SecretKeySpec(KEY, ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, keySpec);
-
         return cipher.doFinal(data);
     }
 }

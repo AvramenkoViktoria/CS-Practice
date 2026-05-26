@@ -1,4 +1,3 @@
 package com.naukma.network.packet;
 
-public class AddStockPacket {
-}
+public record AddStockPacket(String productId, int quantity) implements Packet {}

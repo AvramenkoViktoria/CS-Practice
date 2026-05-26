@@ -1,8 +1,12 @@
-package com.rogueS.network;
+package com.naukma.network;
 
-import com.rogueS.game.Processor;
-import com.rogueS.model.GameState;
-import com.rogueS.network.packet.Packet;
+import com.naukma.model.Warehouse;
+import com.naukma.network.encryption.DecoderWorker;
+import com.naukma.network.encryption.EncoderWorker;
+import com.naukma.network.encryption.PacketDecoder;
+import com.naukma.network.encryption.PacketEncoder;
+import com.naukma.network.messaging.*;
+import com.naukma.network.packet.Packet;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,16 +23,16 @@ public class Main {
         Sender sender = new FakeSender();
         PacketDecoder decoder = new PacketDecoder();
         MessageMapper mapper = new MessageMapper();
-        GameState state = new GameState();
-        Processor processor = new Processor(state);
+        Warehouse warehouse = new Warehouse();
+        Processor processor = new Processor(warehouse);
         PacketEncoder encoder = new PacketEncoder();
         AtomicLong packetIds = new AtomicLong(0);
 
-        ExecutorService receiverExecutor = Executors.newFixedThreadPool(2);
-        ExecutorService decoderExecutor = Executors.newFixedThreadPool(2);
-        ExecutorService processorExecutor = Executors.newFixedThreadPool(4);
-        ExecutorService encoderExecutor = Executors.newFixedThreadPool(3);
-        ExecutorService senderExecutor = Executors.newFixedThreadPool(5);
+        ExecutorService receiverExecutor = Executors.newFixedThreadPool(2, namedThreadFactory("Receiver"));
+        ExecutorService decoderExecutor = Executors.newFixedThreadPool(2, namedThreadFactory("Decoder"));
+        ExecutorService processorExecutor = Executors.newFixedThreadPool(4, namedThreadFactory("Processor"));
+        ExecutorService encoderExecutor = Executors.newFixedThreadPool(3, namedThreadFactory("Encoder"));
+        ExecutorService senderExecutor = Executors.newFixedThreadPool(5, namedThreadFactory("Sender"));
 
         for (int i = 0; i < 2; i++) {
             receiverExecutor.submit(new ReceiverWorker(receiver, rawQueue));
@@ -45,6 +49,8 @@ public class Main {
         for (int i = 0; i < 5; i++) {
             senderExecutor.submit(new SenderWorker(encodedQueue, sender));
         }
+
+        System.out.println("System started. Running for 8 seconds...");
         Thread.sleep(8000);
 
         shutdownGracefully(receiverExecutor, "Receiver");
@@ -53,19 +59,24 @@ public class Main {
         shutdownGracefully(encoderExecutor, "Encoder");
         shutdownGracefully(senderExecutor, "Sender");
 
-        System.out.println("Finished");
+        System.out.println("System finished.");
     }
 
     private static void shutdownGracefully(ExecutorService executor, String name) {
         System.out.println("Shutting down " + name + " workers...");
         executor.shutdown();
         try {
-            if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                System.out.println("Forcing shutdown of " + name);
                 executor.shutdownNow();
             }
         } catch (InterruptedException e) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static ThreadFactory namedThreadFactory(String name) {
+        return r -> new Thread(r, name + "-" + System.currentTimeMillis() % 10000);
     }
 }

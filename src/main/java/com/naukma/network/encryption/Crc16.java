@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.encryption;
 
 public class Crc16 {
     public static short calculate(byte[] bytes) {

@@ -1,4 +1,3 @@
 package com.naukma.network.packet;
 
-public class DeductStockPacket {
-}
+public record DeductStockPacket(String productId, int quantity) implements Packet {}

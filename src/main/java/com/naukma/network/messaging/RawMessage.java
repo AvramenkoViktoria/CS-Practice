@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 
 public record RawMessage(byte[] data) {
 }

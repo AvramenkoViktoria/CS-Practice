@@ -1,4 +1,3 @@
 package com.naukma.network.packet;
 
-public class SetProductPricePacket {
-}
+public record SetProductPricePacket(String productId, double price) implements Packet {}

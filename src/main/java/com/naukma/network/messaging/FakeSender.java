@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 
 import java.util.HexFormat;
 

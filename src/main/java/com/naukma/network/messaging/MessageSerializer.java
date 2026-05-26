@@ -1,8 +1,9 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class MessageSerializer {
+
     public static byte[] serialize(Message message) {
         ByteBuffer buffer =
                 ByteBuffer.allocate(
@@ -10,10 +11,8 @@ public class MessageSerializer {
                 );
 
         buffer.order(ByteOrder.BIG_ENDIAN);
-
         buffer.putInt(message.getType());
         buffer.putInt(message.getUserId());
-
         buffer.put(message.getPayload());
 
         return buffer.array();
@@ -24,7 +23,6 @@ public class MessageSerializer {
                 ByteBuffer.wrap(bytes);
 
         buffer.order(ByteOrder.BIG_ENDIAN);
-
         int type = buffer.getInt();
         int userId = buffer.getInt();
 

@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 
 import lombok.AllArgsConstructor;
 
@@ -16,7 +16,7 @@ public class ReceiverWorker implements Runnable {
                 RawMessage message = receiver.receive();
                 queue.put(message);
             }
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
         }
     }
 }

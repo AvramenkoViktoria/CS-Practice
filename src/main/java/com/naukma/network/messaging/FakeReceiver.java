@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 
 import com.naukma.network.encryption.PacketEncoder;
 import com.naukma.network.packet.UnknownPacketException;
@@ -8,14 +8,9 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class FakeReceiver implements MessageReceiver {
-    private final Random random =
-            new Random();
-
-    private final PacketEncoder encoder =
-            new PacketEncoder();
-
-    private final AtomicLong packetIds =
-            new AtomicLong();
+    private final Random random = new Random();
+    private final PacketEncoder encoder = new PacketEncoder();
+    private final AtomicLong packetIds = new AtomicLong();
 
     @Override
     public RawMessage receive() {

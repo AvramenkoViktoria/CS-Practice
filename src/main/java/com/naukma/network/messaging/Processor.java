@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 
 import com.naukma.model.Warehouse;
 import com.naukma.network.packet.*;

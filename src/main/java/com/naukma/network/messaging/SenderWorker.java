@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 
 import lombok.AllArgsConstructor;
 
@@ -16,7 +16,7 @@ public class SenderWorker implements Runnable {
             while (!Thread.currentThread().isInterrupted()) {
                 sender.send(queue.take());
             }
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }

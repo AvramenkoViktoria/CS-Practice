@@ -1,4 +1,4 @@
-package com.naukma.network;
+package com.naukma.network.messaging;
 
 import com.naukma.network.packet.*;
 
@@ -44,6 +44,9 @@ public class MessageMapper {
     }
 
     public Packet toPacket(Message message) {
+        if (message.getPayload() == null || message.getPayload().length == 0)
+            throw new RuntimeException("Payload cannot be null or empty");
+
         Function<Message, Packet> mapper = mappers.get(message.getType());
         if (mapper == null) {
             throw new RuntimeException("Unknown message type: " + message.getType());

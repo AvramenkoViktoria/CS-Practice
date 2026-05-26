@@ -1,10 +1,11 @@
-package com.naukma.network;
+package com.naukma.network.encryption;
 
+import com.naukma.network.messaging.Message;
+import com.naukma.network.messaging.MessageSerializer;
 import util.CryptoUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 
 public class PacketEncoder {
 
@@ -12,24 +13,21 @@ public class PacketEncoder {
         byte[] serialized = MessageSerializer.serialize(message);
         byte[] encrypted = CryptoUtils.encrypt(serialized);
 
-        ByteBuffer header = ByteBuffer.allocate(16);
-        header.order(ByteOrder.BIG_ENDIAN);
+        ByteBuffer headerBuffer = ByteBuffer.allocate(14);
+        headerBuffer.order(ByteOrder.BIG_ENDIAN);
 
-        header.put((byte) 0x13);        // magic
-        header.put(src);                // source
-        header.putLong(packetId);       // packet id
-        header.putInt(encrypted.length); // length
+        headerBuffer.put((byte) 0x13);        // magic
+        headerBuffer.put(src);                // source
+        headerBuffer.putLong(packetId);       // packet id
+        headerBuffer.putInt(encrypted.length);// length
 
-        byte[] headerForCrc = Arrays.copyOf(header.array(), 14);
-        short headerCrc = Crc16.calculate(headerForCrc);
+        byte[] headerBytes = headerBuffer.array();
+        short headerCrc = Crc16.calculate(headerBytes);
 
         ByteBuffer packet = ByteBuffer.allocate(16 + encrypted.length + 2);
         packet.order(ByteOrder.BIG_ENDIAN);
 
-        packet.put((byte) 0x13);
-        packet.put(src);
-        packet.putLong(packetId);
-        packet.putInt(encrypted.length);
+        packet.put(headerBytes);
         packet.putShort(headerCrc);
 
         packet.put(encrypted);
