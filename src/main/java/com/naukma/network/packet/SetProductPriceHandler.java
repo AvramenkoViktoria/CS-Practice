@@ -1,14 +1,21 @@
 package com.naukma.network.packet;
 
 import com.naukma.model.Warehouse;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public class SetProductPriceHandler implements PacketHandler<SetProductPricePacket> {
-    private final Warehouse warehouse;
+import java.sql.SQLException;
+
+public class SetProductPriceHandler extends AbstractPacketHandler<SetProductPricePacket> {
+
+    public SetProductPriceHandler(Warehouse warehouse) {
+        super(warehouse);
+    }
 
     @Override
-    public String process(SetProductPricePacket packet) {
+    protected String doProcess(SetProductPricePacket packet) throws SQLException {
+        if (packet.price() < 0) {
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
+
         warehouse.setPrice(packet.productId(), packet.price());
         return "Price for " + packet.productId() + " set to " + packet.price();
     }

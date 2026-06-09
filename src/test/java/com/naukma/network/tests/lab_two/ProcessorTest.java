@@ -1,8 +1,16 @@
+package com.naukma.network.tests.lab_two;
+
+import com.naukma.db.DataSourceProvider;
 import com.naukma.model.Warehouse;
 import com.naukma.network.messaging.Processor;
 import com.naukma.network.packet.*;
+import com.naukma.network.tests.util.DBUtil;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,9 +19,25 @@ class ProcessorTest {
     private Processor processor;
     private Warehouse warehouse;
 
+    @BeforeAll
+    static void initDatabase() {
+        DataSourceProvider.init(
+                "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
+                "sa",
+                ""
+        );
+        System.out.println("Test H2 database initialized.");
+    }
+
+    @AfterAll
+    static void closeDatabase() {
+        DataSourceProvider.close();
+    }
+
     @BeforeEach
-    void setUp() {
-        warehouse = new Warehouse();
+    void setUp() throws SQLException {
+        DBUtil.clearDatabase();
+        warehouse = Warehouse.createDefault();
         processor = new Processor(warehouse);
         warehouse.addProduct("P001", "Laptop", 1000);
         warehouse.addProduct("P002", "Mouse", 200);
@@ -30,7 +54,7 @@ class ProcessorTest {
     }
 
     @Test
-    void shouldProcessAddStock() {
+    void shouldProcessAddStock() throws SQLException {
         AddStockPacket packet = new AddStockPacket("P001", 50);
         String result = processor.process(packet);
 
@@ -40,7 +64,7 @@ class ProcessorTest {
     }
 
     @Test
-    void shouldProcessDeductStockSuccessfully() {
+    void shouldProcessDeductStockSuccessfully() throws SQLException {
         DeductStockPacket packet = new DeductStockPacket("P001", 30);
         String result = processor.process(packet);
 
@@ -49,7 +73,7 @@ class ProcessorTest {
     }
 
     @Test
-    void shouldProcessDeductStockWithInsufficientQuantity() {
+    void shouldProcessDeductStockWithInsufficientQuantity() throws SQLException {
         DeductStockPacket packet = new DeductStockPacket("P001", 200);
         String result = processor.process(packet);
 
@@ -67,7 +91,7 @@ class ProcessorTest {
     }
 
     @Test
-    void shouldProcessAddProductToGroup() {
+    void shouldProcessAddProductToGroup() throws SQLException {
         warehouse.addGroup("G001", "Electronics");
         AddProductToGroupPacket packet = new AddProductToGroupPacket("G001", "P001");
         String result = processor.process(packet);
@@ -86,7 +110,7 @@ class ProcessorTest {
 
     @Test
     void shouldReturnUnknownPacketMessageForUnsupportedType() {
-        Packet unknownPacket = new Packet() {}; // анонімний клас
+        Packet unknownPacket = new Packet() {};
         String result = processor.process(unknownPacket);
 
         assertTrue(result.contains("Unknown packet"));

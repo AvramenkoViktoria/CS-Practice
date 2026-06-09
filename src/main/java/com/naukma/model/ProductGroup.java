@@ -1,28 +1,27 @@
 package com.naukma.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-@RequiredArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class ProductGroup {
-    private String id;
+    private final String id;
     private String name;
-    private Set<String> productIds = new HashSet<>();
+    private final List<String> productIds = new ArrayList<>();
 
     public ProductGroup(String id, String name) {
         this.id = id;
         this.name = name;
     }
 
+    public List<String> getProductIds() { return Collections.unmodifiableList(productIds); }
+
     public void addProduct(String productId) {
-        productIds.add(productId);
+        if (!productIds.contains(productId)) productIds.add(productId);
     }
 }

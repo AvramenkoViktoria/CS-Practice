@@ -23,7 +23,7 @@ public class Main {
         Sender sender = new FakeSender();
         PacketDecoder decoder = new PacketDecoder();
         MessageMapper mapper = new MessageMapper();
-        Warehouse warehouse = new Warehouse();
+        Warehouse warehouse = Warehouse.createDefault();
         Processor processor = new Processor(warehouse);
         PacketEncoder encoder = new PacketEncoder();
         AtomicLong packetIds = new AtomicLong(0);

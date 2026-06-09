@@ -1,3 +1,5 @@
+package com.naukma.network.tests.lab_one;
+
 import com.naukma.network.encryption.Crc16;
 import com.naukma.network.encryption.PacketEncoder;
 import com.naukma.network.messaging.Message;

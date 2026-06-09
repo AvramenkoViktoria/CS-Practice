@@ -2,28 +2,29 @@ package com.naukma.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-@RequiredArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
 public class Product {
-    private String id;
+    private final String id;
     private String name;
     private double price;
     private int quantity;
 
-    public void addStock(int amount) {
-        this.quantity += amount;
+    public void addStock(int qty) {
+        this.quantity += qty;
     }
 
-    public boolean deductStock(int amount) {
-        if (quantity >= amount) {
-            quantity -= amount;
-            return true;
-        }
-        return false;
+    public boolean deductStock(int qty) {
+        if (this.quantity < qty) return false;
+        this.quantity -= qty;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{id='" + id + "', name='" + name + "', price=" + price + ", qty=" + quantity + '}';
     }
 }

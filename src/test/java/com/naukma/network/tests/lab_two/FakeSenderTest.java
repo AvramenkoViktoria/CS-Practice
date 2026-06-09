@@ -1,3 +1,5 @@
+package com.naukma.network.tests.lab_two;
+
 import com.naukma.network.messaging.FakeSender;
 import org.junit.jupiter.api.Test;
 

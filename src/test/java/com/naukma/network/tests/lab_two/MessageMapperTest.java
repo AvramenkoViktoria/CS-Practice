@@ -1,3 +1,4 @@
+package com.naukma.network.tests.lab_two;
 
 import com.naukma.network.messaging.MessageMapper;
 import com.naukma.network.packet.*;

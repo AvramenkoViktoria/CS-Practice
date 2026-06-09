@@ -1,14 +1,20 @@
 package com.naukma.network.packet;
 
 import com.naukma.model.Warehouse;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public class AddStockHandler implements PacketHandler<AddStockPacket> {
-    private final Warehouse warehouse;
+import java.sql.SQLException;
+
+public class AddStockHandler extends AbstractPacketHandler<AddStockPacket> {
+
+    public AddStockHandler(Warehouse warehouse) {
+        super(warehouse);
+    }
 
     @Override
-    public String process(AddStockPacket packet) {
+    protected String doProcess(AddStockPacket packet) throws SQLException {
+        if (packet.quantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
         warehouse.addStock(packet.productId(), packet.quantity());
         return "Added " + packet.quantity() + " units to product " + packet.productId();
     }

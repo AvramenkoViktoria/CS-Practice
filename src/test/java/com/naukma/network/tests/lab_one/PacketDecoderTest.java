@@ -1,3 +1,4 @@
+package com.naukma.network.tests.lab_one;
 
 import com.naukma.network.encryption.PacketDecoder;
 import com.naukma.network.encryption.PacketEncoder;

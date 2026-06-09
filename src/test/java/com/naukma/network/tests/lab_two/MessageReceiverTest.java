@@ -1,3 +1,5 @@
+package com.naukma.network.tests.lab_two;
+
 import com.naukma.network.messaging.FakeReceiver;
 import com.naukma.network.messaging.RawMessage;
 import org.junit.jupiter.api.BeforeEach;

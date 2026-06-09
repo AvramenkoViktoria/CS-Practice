@@ -1,14 +1,17 @@
 package com.naukma.network.packet;
 
 import com.naukma.model.Warehouse;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public class GetStockQuantityHandler implements PacketHandler<GetStockQuantityPacket> {
-    private final Warehouse warehouse;
+import java.sql.SQLException;
+
+public class GetStockQuantityHandler extends AbstractPacketHandler<GetStockQuantityPacket> {
+
+    public GetStockQuantityHandler(Warehouse warehouse) {
+        super(warehouse);
+    }
 
     @Override
-    public String process(GetStockQuantityPacket packet) {
+    protected String doProcess(GetStockQuantityPacket packet) throws SQLException {
         int qty = warehouse.getStockQuantity(packet.productId());
         return "Stock quantity for " + packet.productId() + ": " + qty;
     }

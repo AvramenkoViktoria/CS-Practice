@@ -1,14 +1,20 @@
 package com.naukma.network.packet;
 
 import com.naukma.model.Warehouse;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public class DeductStockHandler implements PacketHandler<DeductStockPacket> {
-    private final Warehouse warehouse;
+import java.sql.SQLException;
+
+public class DeductStockHandler extends AbstractPacketHandler<DeductStockPacket> {
+
+    public DeductStockHandler(Warehouse warehouse) {
+        super(warehouse);
+    }
 
     @Override
-    public String process(DeductStockPacket packet) {
+    protected String doProcess(DeductStockPacket packet) throws SQLException {
+        if (packet.quantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
         boolean success = warehouse.deductStock(packet.productId(), packet.quantity());
         return success
                 ? "Successfully deducted " + packet.quantity() + " from " + packet.productId()
