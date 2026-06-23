@@ -13,6 +13,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("io.github.cdimascio:java-dotenv:5.2.2")
+    implementation("com.auth0:java-jwt:4.4.0")
 
     testImplementation("com.h2database:h2:2.2.224")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))

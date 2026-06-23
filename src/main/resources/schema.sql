@@ -15,3 +15,8 @@ CREATE TABLE IF NOT EXISTS product_group_members (
     product_id VARCHAR(64) NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     PRIMARY KEY (group_id, product_id)
     );
+
+CREATE TABLE IF NOT EXISTS users (
+    username      VARCHAR(64) PRIMARY KEY,
+    password_hash VARCHAR(255) NOT NULL
+    );

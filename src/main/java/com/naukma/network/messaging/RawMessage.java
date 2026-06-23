@@ -1,4 +1,3 @@
 package com.naukma.network.messaging;
 
-public record RawMessage(byte[] data) {
-}
+public record RawMessage(byte[] data, String requestId) {}

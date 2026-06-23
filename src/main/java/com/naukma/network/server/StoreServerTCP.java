@@ -1,79 +1,82 @@
 package com.naukma.network.server;
 
-import com.naukma.model.Warehouse;
 import com.naukma.network.messaging.*;
-import com.naukma.network.packet.Packet;
 import java.io.*;
 import java.net.*;
-import java.util.concurrent.*;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 
 public class StoreServerTCP {
     private final int port;
-    private final Processor processor;
-    private final MessageMapper mapper = new MessageMapper();
+    private final BlockingQueue<RawMessage> rawQueue;
+    private final RequestRegistry registry;
     private ServerSocket serverSocket;
-    private ExecutorService executor;
     private volatile boolean running = true;
 
-    public StoreServerTCP(int port) {
+    public StoreServerTCP(int port, BlockingQueue<RawMessage> rawQueue, RequestRegistry registry) {
         this.port = port;
-        Warehouse warehouse = Warehouse.createDefault();
-        this.processor = new Processor(warehouse);
-        this.executor = Executors.newCachedThreadPool();
+        this.rawQueue = rawQueue;
+        this.registry = registry;
     }
 
-    public void start() {
-        try {
-            serverSocket = new ServerSocket(port);
-            System.out.println("TCP Server started on port " + port);
-            while (running) {
+    public void start() throws IOException {
+        serverSocket = new ServerSocket(port);
+        System.out.println("TCP Server started on port " + port);
+        while (running) {
+            try {
                 Socket clientSocket = serverSocket.accept();
-                executor.submit(() -> handleClient(clientSocket));
-            }
-        } catch (IOException e) {
-            if (running) {
-                e.printStackTrace();
+                handleClient(clientSocket);
+            } catch (IOException e) {
+                if (running) System.err.println("TCP accept error: " + e.getMessage());
             }
         }
     }
 
     private void handleClient(Socket socket) {
+        String peer = socket.getInetAddress() + ":" + socket.getPort();
+        System.out.println("TCP client connected: " + peer);
+
         try (socket;
              DataInputStream in = new DataInputStream(socket.getInputStream());
              DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
 
-            System.out.println("Client connected: " + socket.getInetAddress());
+            while (running && !socket.isClosed()) {
+                int length;
+                try {
+                    length = in.readInt();
+                } catch (EOFException e) {
+                    break;
+                }
 
-            while (running) {
-                int length = in.readInt();
-                if (length <= 0) break;
+                if (length <= 0 || length > 64 * 1024) {
+                    System.err.println("TCP: invalid frame length " + length + " from " + peer);
+                    break;
+                }
 
                 byte[] data = new byte[length];
                 in.readFully(data);
 
-                Message msg = MessageSerializer.deserialize(data);
+                String requestId = UUID.randomUUID().toString();
 
-                try {
-                    Packet packet = mapper.toPacket(msg);
-                    String result = processor.process(packet);
+                ClientChannel channel = responseBytes -> {
+                    try {
+                        synchronized (out) {
+                            out.writeInt(responseBytes.length);
+                            out.write(responseBytes);
+                            out.flush();
+                        }
+                    } catch (IOException e) {
+                        System.err.println("TCP: failed to send response to " + peer + ": " + e.getMessage());
+                    }
+                };
 
-                    Message responseMsg = new Message(200, msg.getUserId(), result.getBytes());
-                    byte[] response = MessageSerializer.serialize(responseMsg);
-
-                    out.writeInt(response.length);
-                    out.write(response);
-                    out.flush();
-                } catch (Exception e) {
-                    String error = "Error: " + e.getMessage();
-                    Message errorMsg = new Message(101, msg.getUserId(), error.getBytes());
-                    byte[] response = MessageSerializer.serialize(errorMsg);
-                    out.writeInt(response.length);
-                    out.write(response);
-                    out.flush();
-                }
+                registry.register(requestId, new PendingRequest(requestId, channel));
+                rawQueue.put(new RawMessage(data, requestId));
             }
         } catch (IOException e) {
-            System.out.println("Client disconnected: " + e.getMessage());
+            if (running) System.out.println("TCP client disconnected: " + peer + " (" + e.getMessage() + ")");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -81,9 +84,8 @@ public class StoreServerTCP {
         running = false;
         try {
             if (serverSocket != null) serverSocket.close();
-            executor.shutdown();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error stopping TCP server: " + e.getMessage());
         }
     }
 }
